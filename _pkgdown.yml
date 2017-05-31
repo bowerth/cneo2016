@@ -1,0 +1,23 @@
+templates:
+  params:
+    bootswatch: cosmo
+
+reference:
+  - title: Build
+    desc:  Build each component of the site.
+    contents:
+    - starts_with("build_")
+    - init_site
+  - title: Templates
+    contents:
+    - template_navbar
+    - render_page
+
+navbar:
+  left:
+  - text: "Country Notes"
+    menu:
+    - text: Canada
+      href: articles/can.html
+  - text: Reference
+    href: reference/index.html

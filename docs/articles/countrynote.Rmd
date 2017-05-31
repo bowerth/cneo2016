@@ -1,0 +1,45 @@
+---
+author: "Bo Werth"
+title: "Introduction to countrynote"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{countrynote}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=TRUE}
+opts_chunk <- list(fig.width = 10)
+
+library(ggplot2)
+library(RColorBrewer)
+options(scipen=8)
+axis.text.size <- 12
+legend.text.size <- 14
+
+theme_set(theme_grey())
+tt <- theme(axis.title.x=element_blank(),
+           axis.title.y=element_blank(),
+           axis.text.x = element_text(angle=90, hjust=1, vjust=.4),
+           axis.text.y = element_text(size=axis.text.size),
+           axis.ticks=element_line(linetype=0),
+           legend.position="top")
+
+library(countrynote)
+init()
+```
+
+## EXGRDVA_EX
+
+```{r, echo=TRUE}
+yr <- 2009
+refyr <- 1995
+data <- icioIndic_data
+
+deu <- exgrdvaex(data = data, yr = yr, refyr = refyr, cou = "DEU")
+exgrdvaexPlot(deu$data_plot, deu$data_summary) + tt
+
+usa <- exgrdvaex(data = data, yr = yr, refyr = refyr, cou = "USA")
+exgrdvaexPlot(usa$data_plot, usa$data_summary) + tt
+```
+

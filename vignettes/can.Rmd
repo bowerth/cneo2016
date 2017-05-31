@@ -1,0 +1,238 @@
+---
+title: "Countrynote Canada"
+author: "Economic Outlook 2016"
+output:
+  rmarkdown::html_vignette
+#  rmarkdown::html_vignette:
+#    fig_width: 3.48 # 7.5
+#    fig_height: 3 # 6
+vignette: >
+  %\VignetteIndexEntry{eo2016}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+ 
+```{r init, message=FALSE, warning=FALSE, echo=FALSE}
+library(cneo2016)
+
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(lattice)
+library(latticeExtra)
+library(latex2exp)
+library(grid)
+library(xts)
+library(dygraphs)
+
+## source("../R/changeDates.R")
+## source("../R/doubleYScale2.R")
+## source("../R/lattice-settings.R")
+source("util/lattice-settings.R")
+```
+
+
+## Data Structure
+
+- StatLink 1: [http://dx.doi.org/10.1787/888933437487](http://dx.doi.org/10.1787/888933437487)
+- StatLink 2: [http://dx.doi.org/10.1787/888933437497](http://dx.doi.org/10.1787/888933437497)
+
+```{r data, echo=FALSE}
+eoLoad <- function(file=stop("'file' must be provided")) {
+  dat <- read.table(file = file, header = TRUE, sep = "\t", na = "ND")
+  dat$date <- changeDates(dat$date)
+  return(dat)
+}
+
+## dataPath <- "../example/economic-forecast-summary-2016/data/can"
+dataPath <- system.file("extdata/can", package = "cneo2016")
+list.files(dataPath)
+fname <- c("can11.tsv",
+           "can12.tsv",
+           "can21.tsv",
+           "can22.tsv")
+eoData <- lapply(file.path(dataPath, fname), eoLoad)
+names(eoData) <- tools::file_path_sans_ext(fname)
+## write.table(dat1, file = "../example/economic-forecast-summary-2016/code/data.tsv", sep = "\t", row.names = FALSE)
+```
+
+```{r kable-dat, echo=FALSE, results='as.is'}
+knitr::kable(head(eoData$can11, 3))
+knitr::kable(head(eoData$can12, 3))
+knitr::kable(head(eoData$can21, 3))
+knitr::kable(head(eoData$can22, 3))
+```
+
+
+## Lattice Chart 1
+
+### FAME Output
+
+<!-- ![](../example/economic-forecast-summary-2016/png/canada-mining.png) -->
+<!-- ![](../example/economic-forecast-summary-2016/png/can1.png) -->
+<!-- <img src="../example/economic-forecast-summary-2016/png/can1.png" width="700px"> -->
+<!-- <img src="assets/img/eo2016-can1.png" width="700px"> -->
+
+```{r png1, out.width='100%', echo=FALSE}
+knitr::include_graphics("assets/img/eo2016-can1.png")
+```
+
+### latticeExtra Double Y-Scales
+
+<!-- ```{r can1, fig.width=4.38, fig.height=3.5, echo=FALSE} -->
+```{r chart-1, out.width='50%', echo=FALSE}
+
+## chart 1-1
+y1lim <- c(-2, 4)
+y2lim <- c(-8, 16)
+
+obj1 <-
+  xyplot(total + other ~ date, data = eoData$can11, type = "l", ylim = y1lim,
+         scales = list(y = list(at = atLim(y1lim))),
+         xscale.components = add.lattice.xsubticks,
+         axis = axisEOleft,
+         panel = panelEO,
+         ## ylab = ylabGrid(label = "Y-o-y % changes", hjust = 0.4),
+         ylab = "Y-o-y % changes",
+         xlab = "",
+         main = "Growth has picked up outside the oil\nand gas sector")
+
+obj2 <-
+  xyplot(mining ~ date, data = eoData$can11, type = "l", ylim = y2lim,
+         ## ylab = "Y-o-y % changes",
+         scales = list(y = list(at = atLim(y2lim, 4)), tck = 0)) # do not draw ticks,
+
+cad <-
+  doubleYScale(obj1, obj2,
+               style1 = 0, style2 = 3,
+               ## add.ylab2 = TRUE, # FALSE,
+               text = c(
+                 TeX("$\\leftarrow$ All Industries"),
+                 TeX("$\\leftarrow$ Other"),
+                 TeX("Mining, quarrying, oil and gas extraction $\\rightarrow$")),
+               columns = 1)
+
+
+## re-plot with different styles
+update(cad,
+       par.settings = par.settingsEO(pal = "pal3", pos = "both")
+       )
+
+## chart 1-2
+y1lim <- c(-30, 45)
+xyplot(mining + other ~ date, data = eoData$can12, type = "l", ylim = y1lim,
+       scales = list(y = list(at = atLim(y1lim, 15))),
+       xscale.components = add.lattice.xsubticks,
+       axis = axisEOright,
+       panel = function(...) panelEO(hgrid = 4, ...),
+       ylab = "",
+       ylab.right = "Y-o-y % changes",
+       xlab = "",
+       main = "The downturn in business investment\nis moderating",
+       par.settings = par.settingsEO("pal2", pos = "right"),
+       auto.key = list(text = c("Mining investment",
+                                "Other business investment"),
+                       lines = TRUE,
+                       points = FALSE,
+                       columns = 1,
+                       corner = c(0.1, 0.1)
+                       )
+       )
+
+```
+
+## Lattice Chart 2
+
+### FAME Output
+
+<!-- <img src="../example/economic-forecast-summary-2016/png/can2.png" width="700px"> -->
+<!-- <img src="assets/img/eo2016-can2.png" width="700px"> -->
+
+```{r png2, out.width='100%', echo=FALSE}
+knitr::include_graphics("assets/img/eo2016-can2.png")
+```
+
+### lattice Output
+
+<!-- ```{r can2, echo=FALSE} -->
+```{r chart-2, out.width='50%', echo=FALSE}
+
+y1lim <- c(78,144)
+xyplot(rest + toronto + vancouver ~ date, data = eoData$can21, type = "l", ylim = y1lim,
+       scales = list(y = list(at = atLim(y1lim, 11))),
+       xscale.components = add.lattice.xsubticks,
+       axis = axisEOleft,
+       panel = function(...) panelEO(hgrid = 5, ...),
+       ylab = "Index January 2014 = 100",
+       xlab = "",
+       main = "Vancouver and Toronto housing markets\nare overheating",
+       par.settings = par.settingsEO("pal3"),
+       auto.key = list(text = c("Rest of Canada",
+                                "Toronto",
+                                "Vancouver"),
+                       lines = TRUE,
+                       points = FALSE,
+                       columns = 1,
+                       corner = c(0, 1)
+                       )
+       )
+
+y1lim <- c(-12,24)
+xyplot(total + other + ontario ~ date, data = eoData$can22, type = "l", ylim = y1lim,
+       scales = list(y = list(at = atLim(y1lim, 6))),
+       xscale.components = add.lattice.xsubticks,
+       axis = axisEOright,
+       panel = function(...) panelEO(hgrid = 5, ...),
+       ylab = "",
+       ylab.right = "Y-o-y % changes",
+       xlab = "",
+       main = "Residential investment growth is strong only\nin booming markets",
+       par.settings = par.settingsEO("pal3", pos = "right"),
+       auto.key = list(text = c("Canada",
+                                "Other provinces",
+                                "Ontario and British Columbia"),
+                       lines = TRUE,
+                       points = FALSE,
+                       columns = 1,
+                       corner = c(0.5, 1)
+                       )
+       )
+
+
+```
+
+- x-axis subticks: https://github.com/Rapporter/pander/blob/master/R/graph.R and Sarkar, 2008, Lattice: Multivariate Data Visualization with R, Springer, pp.146f.
+- missing: right y-axis label, automatic left y-axis label position, quarterly ticks, top grid line, legend inside plot area using `corner([0;1],[0;1])`, flashes outside legend, legend line colors on left-hand side, horizontal line at index=100
+- todo: expand x-axis, remove left y-axis ticks, increase relative font size axis tick labels, increase visibility of grid lines using `panel.grid()`
+
+
+## dygraphs
+
+- [xts: Plotting Time Series in R using Yahoo Finance data](http://blog.revolutionanalytics.com/2015/08/plotting-time-series-in-r.html)
+
+
+<!-- ```{r dygraph, fig.width = 7.5, echo=FALSE, eval=TRUE} -->
+```{r dygraph, out.width='100%', echo=FALSE, eval=TRUE}
+
+y1lim <- c(-2, 4)
+y2lim <- c(-8, 16)
+can11xts <- eoData$can11
+rownames(can11xts) <- can11xts$date
+can11xts <- select(can11xts, -date)       # using info from rownames implicitly
+dygraph(can11xts) %>%
+  dyAxis("y", valueRange = y1lim, label = "Y-o-y % changes") %>%
+  dyAxis("y2", valueRange = y2lim, label = "Y-o-y % changes", independentTicks = TRUE) %>%
+  dySeries("total", axis = "y", label = "<-- Total") %>%
+  dySeries("other", axis = "y", label = "<-- Other") %>%
+  dySeries("mining", axis = "y2", label = "Mining -->") %>%
+  dyOptions(colors = lineColors$pal3,
+            strokeWidth = 2,
+            ## drawYAxis = FALSE,
+            ## drawGrid = FALSE,
+            drawAxesAtZero = TRUE)
+
+```
+
+### Todo
+
+- fix JS: keep axis ticks when `drawYAxis = FALSE`, keep horizontal lines when `drawGrid = FALSE` using `drawXGrid` and `drawYGrid` from version 1.1.0 (current version 2.0.0)
