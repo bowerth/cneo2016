@@ -74,7 +74,8 @@ knitr::kable(head(eoData$can22, 3))
 <!-- <img src="assets/img/eo2016-can1.png" width="700px"> -->
 
 ```{r png1, out.width='100%', echo=FALSE}
-knitr::include_graphics("assets/img/eo2016-can1.png")
+## knitr::include_graphics("assets/img/eo2016-can1.png")
+knitr::include_graphics("assets/img/eo2016-can1.svg")
 ```
 
 ### latticeExtra Double Y-Scales
@@ -149,7 +150,8 @@ xyplot(mining + other ~ date, data = eoData$can12, type = "l", ylim = y1lim,
 <!-- <img src="assets/img/eo2016-can2.png" width="700px"> -->
 
 ```{r png2, out.width='100%', echo=FALSE}
-knitr::include_graphics("assets/img/eo2016-can2.png")
+## knitr::include_graphics("assets/img/eo2016-can2.png")
+knitr::include_graphics("assets/img/eo2016-can2.svg")
 ```
 
 ### lattice Output
