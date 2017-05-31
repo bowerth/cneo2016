@@ -164,7 +164,7 @@ xyplot(rest + toronto + vancouver ~ date, data = eoData$can21, type = "l", ylim 
        scales = list(y = list(at = atLim(y1lim, 11))),
        xscale.components = add.lattice.xsubticks,
        axis = axisEOleft,
-       panel = function(...) panelEO(hgrid = 5, ...),
+       panel = function(...) panelEO(hgrid = 5, intercept = 100, ...),
        ylab = "Index January 2014 = 100",
        xlab = "",
        main = "Vancouver and Toronto housing markets\nare overheating",

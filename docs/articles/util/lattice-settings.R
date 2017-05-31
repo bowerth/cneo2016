@@ -31,21 +31,27 @@ add.lattice.xsubticks <- function (lim, ..., n = 2) {
 }
 
 ## xyplot functions
-panelEO <- function(hgrid=-1, ...) {
+panelEO <- function(hgrid=-1, intercept=0, ...) {
   lims <- current.panel.limits()
   panel.grid(h=hgrid, v = 0)
   panel.xyplot(...)
   panel.abline(h=lims$ylim[1]) # bottom
-  panel.abline(h=0) # zero
+  panel.abline(h=lims$ylim[2], col = "grey50", alpha = .3) # top
+  panel.abline(h=intercept) # zero
+}
+
+panelEO100 <- function(...) {
+  panelEO(...)
+  panel.abline(h=100) # zero 
 }
 
 axisEOleft <- function(side, line.col = "black", ...) {
   ## Only draw axes on the left and bottom
   if(side %in% c("left","bottom")) {
-    ## Call default axis drawing function
-    ## axis.default(side = side, line.col = "black",
-    ##              ## ticks = "no",
-    ##              ...)
+  ##   Call default axis drawing function
+  ##   axis.default(side = side, line.col = "black",
+  ##             ## ticks = "no",
+  ##                ...)
     axis.default(side = "bottom", line.col = "black", ticks = "yes", ...)
     axis.default(side = "left", line.col = "black", ticks = "no", ...)
   }
@@ -54,12 +60,12 @@ axisEOleft <- function(side, line.col = "black", ...) {
 axisEOright <- function(side, line.col = "black", ...) {
   ## Only draw axes on the left and bottom
   if(side %in% c("right","bottom")) {
-    ## Call default axis drawing function
-    ## axis.default(side = side, line.col = "black", ...)
-    ## axis.default(side = side, line.col = "black",
-    ##              ## ticks = "no",
-    ##              labels = "yes",
-    ##              ...)
+  ##   Call default axis drawing function
+  ##   axis.default(side = side, line.col = "black", ...)
+  ##   axis.default(side = side, line.col = "black",
+  ##                ## ticks = "no",
+  ##                labels = "yes",
+  ##                ...)
     axis.default(side = "bottom", line.col = "black", ticks = "yes", ...)
     axis.default(side = "right", line.col = "black", ticks = "no", labels = "yes", ...)
   }
