@@ -40,11 +40,6 @@ panelEO <- function(hgrid=-1, intercept=0, ...) {
   panel.abline(h=intercept) # zero
 }
 
-panelEO100 <- function(...) {
-  panelEO(...)
-  panel.abline(h=100) # zero 
-}
-
 axisEOleft <- function(side, line.col = "black", ...) {
   ## Only draw axes on the left and bottom
   if(side %in% c("left","bottom")) {

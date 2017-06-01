@@ -2,10 +2,10 @@
 title: "Countrynote Canada"
 author: "Economic Outlook 2016"
 output:
-  rmarkdown::html_vignette
-#  rmarkdown::html_vignette:
-#    fig_width: 3.48 # 7.5
-#    fig_height: 3 # 6
+#  rmarkdown::html_vignette
+  rmarkdown::html_vignette:
+    fig_width: 3.48 # 7.5
+    fig_height: 3 # 6
 vignette: >
   %\VignetteIndexEntry{eo2016}
   %\VignetteEngine{knitr::rmarkdown}
@@ -25,9 +25,6 @@ library(grid)
 library(xts)
 library(dygraphs)
 
-## source("../R/changeDates.R")
-## source("../R/doubleYScale2.R")
-## source("../R/lattice-settings.R")
 source("util/lattice-settings.R")
 ```
 
@@ -44,7 +41,6 @@ eoLoad <- function(file=stop("'file' must be provided")) {
   return(dat)
 }
 
-## dataPath <- "../example/economic-forecast-summary-2016/data/can"
 dataPath <- system.file("extdata/can", package = "cneo2016")
 list.files(dataPath)
 fname <- c("can11.tsv",
@@ -53,7 +49,6 @@ fname <- c("can11.tsv",
            "can22.tsv")
 eoData <- lapply(file.path(dataPath, fname), eoLoad)
 names(eoData) <- tools::file_path_sans_ext(fname)
-## write.table(dat1, file = "../example/economic-forecast-summary-2016/code/data.tsv", sep = "\t", row.names = FALSE)
 ```
 
 ```{r kable-dat, echo=FALSE, results='as.is'}
@@ -67,11 +62,6 @@ knitr::kable(head(eoData$can22, 3))
 ## Lattice Chart 1
 
 ### FAME Output
-
-<!-- ![](../example/economic-forecast-summary-2016/png/canada-mining.png) -->
-<!-- ![](../example/economic-forecast-summary-2016/png/can1.png) -->
-<!-- <img src="../example/economic-forecast-summary-2016/png/can1.png" width="700px"> -->
-<!-- <img src="assets/img/eo2016-can1.png" width="700px"> -->
 
 ```{r png1, out.width='100%', echo=FALSE}
 ## knitr::include_graphics("assets/img/eo2016-can1.png")
@@ -204,8 +194,8 @@ xyplot(total + other + ontario ~ date, data = eoData$can22, type = "l", ylim = y
 ```
 
 - x-axis subticks: https://github.com/Rapporter/pander/blob/master/R/graph.R and Sarkar, 2008, Lattice: Multivariate Data Visualization with R, Springer, pp.146f.
-- missing: right y-axis label, automatic left y-axis label position, quarterly ticks, top grid line, legend inside plot area using `corner([0;1],[0;1])`, flashes outside legend, legend line colors on left-hand side, horizontal line at index=100
-- todo: expand x-axis, remove left y-axis ticks, increase relative font size axis tick labels, increase visibility of grid lines using `panel.grid()`
+- missing: right y-axis label, automatic left y-axis label position, quarterly minor ticks, legend inside plot area in doubleYScale using `corner([0;1],[0;1])`, flashes outside legend, legend line colors on left-hand side
+- todo: expand x-axis, increase relative font size axis tick labels, increase visibility of grid lines using `panel.grid()`
 
 
 ## dygraphs
@@ -222,6 +212,12 @@ can11xts <- eoData$can11
 rownames(can11xts) <- can11xts$date
 can11xts <- select(can11xts, -date)       # using info from rownames implicitly
 dygraph(can11xts) %>%
+  dyRangeSelector() %>%
+  dyShading(from = "2013-10-1", to = "2013-12-1") %>%
+  dyShading(from = "2014-6-1", to = "2014-8-1") %>%
+  dyShading(from = "2014-10-1", to = "2015-4-1") %>%
+  dyShading(from = "2015-8-1", to = "2015-10-1") %>%
+  dyShading(from = "2016-2-1", to = "2016-5-1") %>%
   dyAxis("y", valueRange = y1lim, label = "Y-o-y % changes") %>%
   dyAxis("y2", valueRange = y2lim, label = "Y-o-y % changes", independentTicks = TRUE) %>%
   dySeries("total", axis = "y", label = "<-- Total") %>%
@@ -230,9 +226,11 @@ dygraph(can11xts) %>%
   dyOptions(colors = lineColors$pal3,
             strokeWidth = 2,
             ## drawYAxis = FALSE,
-            ## drawGrid = FALSE,
-            drawAxesAtZero = TRUE)
-
+            drawGrid = FALSE,
+            drawAxesAtZero = TRUE) %>%
+  dyHighlight(highlightCircleSize = 3,
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = TRUE)
 ```
 
 ### Todo

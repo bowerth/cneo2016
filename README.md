@@ -1,15 +1,15 @@
 # cneo2016
 
-## Install package
+install package
+:   `Rscript -e 'devtools::document();devtools::install()'`
 
-`Rscript -e 'devtools::document();devtools::install()'`
+update site
+:   `Rscript -e 'pkgdown::build_site()'`
 
-## Update site
+only update articles from vignettes
+:   `Rscript -e 'pkgdown::build_articles()'`
 
-`Rscript -e 'pkgdown::build_site()'`
+serve site
+:   `cd docs && python -m SimpleHTTPServer`
 
-## Serve site
-
-`cd docs && python -m SimpleHTTPServer`
-
-- [localhost:8000](http://localhost:8000)
+- open with browser [localhost:8000](http://localhost:8000)
