@@ -272,7 +272,7 @@ plot_ly() %>%
   add_lines(x = eoData$can11$date, y = eoData$can11$other, line = list(color=lineColors$pal3[2]), name = "<-- Other") %>%
   add_lines(x = eoData$can11$date, y = eoData$can11$mining, line = list(color=lineColors$pal3[3]), name = "Mining -->", yaxis = "y2") %>%
   layout(
-    title = "plotly.js Double Y Axis",
+    title = "",
     yaxis = ay1,
     yaxis2 = ay2,
     xaxis = list(title="")
