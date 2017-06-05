@@ -25,6 +25,8 @@ library(grid)
 library(xts)
 library(dygraphs)
 
+library(plotly)
+
 source("util/lattice-settings.R")
 ```
 
@@ -236,3 +238,42 @@ dygraph(can11xts) %>%
 ### Todo
 
 - fix JS: keep axis ticks when `drawYAxis = FALSE`, keep horizontal lines when `drawGrid = FALSE` using `drawXGrid` and `drawYGrid` from version 1.1.0 (current version 2.0.0)
+
+## Plotly
+
+- [plot.ly: Multiple Axes in R](https://plot.ly/r/multiple-axes/)
+- replace plotly icon in hover modebar (see http://rdata.work/technical/2015/07/26/javascript.html, "plotly.js")
+
+```{r plotly-multiple-y, out.width='100%', echo=FALSE}
+y1lim <- c(-2, 4)
+y2lim <- c(-8, 16)
+
+ay1 <- list(
+  tickmode = "linear",
+  tick0 = y1lim[1],
+  dtick = 1,
+  range = y1lim
+)
+
+ay2 <- list(
+  tickfont = list(color = "red"),
+  tickmode = "linear",
+  tick0 = y2lim[1],
+  dtick = 4,
+  overlaying = "y",
+  side = "right",
+  title = "Y-o-y % changes",
+  range = y2lim
+)
+
+plot_ly() %>%
+  add_lines(x = eoData$can11$date, y = eoData$can11$total, line = list(color=lineColors$pal3[1]), name = "<-- Total") %>%
+  add_lines(x = eoData$can11$date, y = eoData$can11$other, line = list(color=lineColors$pal3[2]), name = "<-- Other") %>%
+  add_lines(x = eoData$can11$date, y = eoData$can11$mining, line = list(color=lineColors$pal3[3]), name = "Mining -->", yaxis = "y2") %>%
+  layout(
+    title = "plotly.js Double Y Axis",
+    yaxis = ay1,
+    yaxis2 = ay2,
+    xaxis = list(title="")
+  )
+```
