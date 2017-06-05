@@ -243,6 +243,7 @@ dygraph(can11xts) %>%
 
 - [plot.ly: Multiple Axes in R](https://plot.ly/r/multiple-axes/)
 - replace plotly icon in hover modebar (see http://rdata.work/technical/2015/07/26/javascript.html, "plotly.js")
+- the modified plotly.js library can be found at https://s3.eu-central-1.amazonaws.com/cdn-plotly/plotly-custom.min.js
 
 ```{r plotly-multiple-y, out.width='100%', echo=FALSE}
 y1lim <- c(-2, 4)
