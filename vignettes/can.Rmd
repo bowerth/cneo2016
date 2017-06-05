@@ -200,7 +200,7 @@ xyplot(total + other + ontario ~ date, data = eoData$can22, type = "l", ylim = y
 - todo: expand x-axis, increase relative font size axis tick labels, increase visibility of grid lines using `panel.grid()`
 
 
-## dygraphs
+## Dygraphs
 
 - [xts: Plotting Time Series in R using Yahoo Finance data](http://blog.revolutionanalytics.com/2015/08/plotting-time-series-in-r.html)
 
@@ -239,7 +239,7 @@ dygraph(can11xts) %>%
 
 - fix JS: keep axis ticks when `drawYAxis = FALSE`, keep horizontal lines when `drawGrid = FALSE` using `drawXGrid` and `drawYGrid` from version 1.1.0 (current version 2.0.0)
 
-## plotly.js
+## Plotly
 
 - [plot.ly: Multiple Axes in R](https://plot.ly/r/multiple-axes/)
 - replace plotly icon in hover modebar (see http://rdata.work/technical/2015/07/26/javascript.html, "plotly.js")
