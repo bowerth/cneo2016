@@ -65,7 +65,7 @@ knitr::kable(head(eoData$can22, 3))
 
 ### FAME Output
 
-```{r png1, out.width='100%', echo=FALSE}
+```{r fame-output-1, out.width='100%', echo=FALSE}
 ## knitr::include_graphics("assets/img/eo2016-can1.png")
 knitr::include_graphics("assets/img/eo2016-can1.svg")
 ```
@@ -141,7 +141,7 @@ xyplot(mining + other ~ date, data = eoData$can12, type = "l", ylim = y1lim,
 <!-- <img src="../example/economic-forecast-summary-2016/png/can2.png" width="700px"> -->
 <!-- <img src="assets/img/eo2016-can2.png" width="700px"> -->
 
-```{r png2, out.width='100%', echo=FALSE}
+```{r fame-output-2, out.width='100%', echo=FALSE}
 ## knitr::include_graphics("assets/img/eo2016-can2.png")
 knitr::include_graphics("assets/img/eo2016-can2.svg")
 ```
@@ -267,7 +267,7 @@ ay2 <- list(
   range = y2lim
 )
 
-plot_ly() %>%
+p <- plot_ly() %>%
   add_lines(x = eoData$can11$date, y = eoData$can11$total, line = list(color=lineColors$pal3[1]), name = "<-- Total") %>%
   add_lines(x = eoData$can11$date, y = eoData$can11$other, line = list(color=lineColors$pal3[2]), name = "<-- Other") %>%
   add_lines(x = eoData$can11$date, y = eoData$can11$mining, line = list(color=lineColors$pal3[3]), name = "Mining -->", yaxis = "y2") %>%
@@ -277,4 +277,34 @@ plot_ly() %>%
     yaxis2 = ay2,
     xaxis = list(title="")
   )
+p
+```
+
+### Export SVG from plotly
+
+- `plotly::export()` function allows exporting an SVG vector image using the RSelenium package to establish a connection to a web browser
+
+```{r plotly-export-svg, eval=TRUE, message=FALSE, echo=FALSE}
+svg_file <- "plotly-multiple-y.svg"
+svg_fromfile <- file.path("~/Downloads", svg_file)
+svg_tofile <- file.path("assets/img", svg_file)
+## clean previous files
+unlink(svg_fromfile)
+## create plot
+suppressMessages(
+  rD <- RSelenium::rsDriver(
+                     browser = "chrome",
+                     ## browser = "phantomjs",
+                     verbose = FALSE)
+)
+export(p = p, file = svg_file, selenium = rD)
+Sys.sleep(1)
+rD[["server"]]$stop()
+## move saved file
+file.copy(from = svg_fromfile, to = svg_tofile)
+unlink(svg_fromfile)
+```
+
+```{r plotly-include-svg, out.width='100%', echo=FALSE, eval=TRUE}
+knitr::include_graphics(svg_tofile)
 ```
