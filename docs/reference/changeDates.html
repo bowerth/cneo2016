@@ -11,7 +11,7 @@
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
-<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
@@ -25,12 +25,14 @@
 <script src="../pkgdown.js"></script>
 
 <!-- mathjax -->
-<script src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
+<script src='https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
 
 <!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
+
+
   </head>
 
   <body>
@@ -85,13 +87,16 @@
     <p>change statlink dates to R Date</p>
     
 
-    <pre><span class='fu'>changeDates</span>(<span class='no'>idx</span>)</pre>
+    <pre class="usage"><span class='fu'>changeDates</span>(<span class='no'>idx</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
-    <dl class="dl-horizontal">
-      <dt>date</dt>
-      <dd>a date character vector containing &quot;m&quot; or &quot;q&quot;.</dd>
-    </dl>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>date</th>
+      <td><p>a date character vector containing "m" or "q".</p></td>
+    </tr>
+    </table>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
@@ -99,7 +104,7 @@
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>changeDates</span>(<span class='fu'>c</span>(<span class='st'>"2012m1"</span>, <span class='st'>"2012m2"</span>))</div><div class='output co'>#&gt; <span class='error'>Error in changeDates(c(&quot;2012m1&quot;, &quot;2012m2&quot;)): could not find function &quot;str_pad&quot;</span></div><div class='input'><span class='fu'>changeDates</span>(<span class='fu'>c</span>(<span class='st'>"2012q1"</span>, <span class='st'>"2012q2"</span>, <span class='st'>"2012q3"</span>, <span class='st'>"2012q4"</span>))</div><div class='output co'>#&gt; <span class='error'>Error in changeDates(c(&quot;2012q1&quot;, &quot;2012q2&quot;, &quot;2012q3&quot;, &quot;2012q4&quot;)): could not find function &quot;str_pad&quot;</span></div></pre>
+    <pre class="examples"><div class='input'><span class='fu'>changeDates</span>(<span class='fu'>c</span>(<span class='st'>"2012m1"</span>, <span class='st'>"2012m2"</span>))</div><div class='output co'>#&gt; <span class='error'>Error in changeDates(c("2012m1", "2012m2")): could not find function "str_pad"</span></div><div class='input'><span class='fu'>changeDates</span>(<span class='fu'>c</span>(<span class='st'>"2012q1"</span>, <span class='st'>"2012q2"</span>, <span class='st'>"2012q3"</span>, <span class='st'>"2012q4"</span>))</div><div class='output co'>#&gt; <span class='error'>Error in changeDates(c("2012q1", "2012q2", "2012q3", "2012q4")): could not find function "str_pad"</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
