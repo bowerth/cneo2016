@@ -14,10 +14,8 @@ vignette: >
  
 ```{r init, message=FALSE, warning=FALSE, echo=FALSE}
 library(cneo2016)
-
 library(stringr)
-library(dplyr)
-library(tidyr)
+
 library(lattice)
 library(latticeExtra)
 library(latex2exp)
@@ -212,7 +210,7 @@ y1lim <- c(-2, 4)
 y2lim <- c(-8, 16)
 can11xts <- eoData$can11
 rownames(can11xts) <- can11xts$date
-can11xts <- select(can11xts, -date)       # using info from rownames implicitly
+can11xts <- can11xts[, !colnames(can11xts)%in%c("date")]       # using info from rownames implicitly
 dygraph(can11xts) %>%
   dyRangeSelector() %>%
   dyShading(from = "2013-10-1", to = "2013-12-1") %>%
@@ -244,8 +242,9 @@ dygraph(can11xts) %>%
 - [plot.ly: Multiple Axes in R](https://plot.ly/r/multiple-axes/)
 - replace plotly icon in hover modebar (see http://rdata.work/technical/2015/07/26/javascript.html, "plotly.js")
 - the modified plotly.js library can be found at https://s3.eu-central-1.amazonaws.com/cdn-plotly/plotly-custom.min.js
+- export SVG from plotly: `plotly::export()` function allows exporting an SVG vector image using the RSelenium package to establish a connection to a web browser
 
-```{r plotly-multiple-y, out.width='100%', echo=FALSE}
+```{r plotly-multiple-y, out.width='100%', message=FALSE, warning=FALSE, echo=FALSE}
 y1lim <- c(-2, 4)
 y2lim <- c(-8, 16)
 
@@ -276,15 +275,16 @@ p <- plot_ly() %>%
     yaxis = ay1,
     yaxis2 = ay2,
     xaxis = list(title="")
+##  ,
+    ## width = 800,                        # in px, 
+    ## height = 500                        # determines ratio of svg
   )
 p
 ```
 
-### Export SVG from plotly
+## Plotly Static Image Export (SVG)
 
-- `plotly::export()` function allows exporting an SVG vector image using the RSelenium package to establish a connection to a web browser
-
-```{r plotly-export-svg, eval=TRUE, message=FALSE, echo=FALSE}
+```{r plotly-export-svg, out.width='100%', message=FALSE, echo=TRUE, cache=FALSE}
 svg_file <- "plotly-multiple-y.svg"
 svg_fromfile <- file.path("~/Downloads", svg_file)
 svg_tofile <- file.path("assets/img", svg_file)
@@ -294,14 +294,15 @@ unlink(svg_fromfile)
 suppressMessages(
   rD <- RSelenium::rsDriver(
                      browser = "chrome",
-                     ## browser = "phantomjs",
+                     ## browser = "phantomjs", # not successful
                      verbose = FALSE)
 )
+p$layout$height <- 480                  # match interactive plot height
 export(p = p, file = svg_file, selenium = rD)
 Sys.sleep(1)
-rD[["server"]]$stop()
+rDstop <- rD[["server"]]$stop()
 ## move saved file
-file.copy(from = svg_fromfile, to = svg_tofile)
+copy <- file.copy(from = svg_fromfile, to = svg_tofile, overwrite = TRUE)
 unlink(svg_fromfile)
 ```
 
