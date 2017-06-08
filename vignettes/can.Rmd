@@ -25,6 +25,8 @@ library(dygraphs)
 
 library(plotly)
 
+library(rsvg)
+
 source("util/lattice-settings.R")
 ```
 
@@ -284,28 +286,42 @@ p
 
 ## Plotly Static Image Export (SVG)
 
-```{r plotly-export-svg, out.width='100%', message=FALSE, echo=TRUE, cache=FALSE}
-svg_file <- "plotly-multiple-y.svg"
-svg_fromfile <- file.path("~/Downloads", svg_file)
-svg_tofile <- file.path("assets/img", svg_file)
-## clean previous files
-unlink(svg_fromfile)
+```{r plotly-export-svg, out.width='100%', message=FALSE, echo=TRUE, cache=TRUE}
+fig_path <- "assets/img"
+file_name <- "plotly-multiple-y"
+svg_file <- paste0(file_name, ".svg")
+svg_tofile <- file.path(fig_path, svg_file)
+unlink(svg_tofile)
+## chrome options
+eCaps <- list(
+  chromeOptions =
+    list(prefs = list(
+      "profile.default_content_settings.popups" = 0L,
+      "download.prompt_for_download" = FALSE,
+      "download.default_directory" = file.path(getwd(), fig_path)
+      )))
+
 ## create plot
 suppressMessages(
-  rD <- RSelenium::rsDriver(
-                     browser = "chrome",
-                     ## browser = "phantomjs", # not successful
-                     verbose = FALSE)
+  rD <- RSelenium::rsDriver(port = 4590L,
+                            browser = "chrome",
+                            geckover = NULL,
+                            iedrver = NULL,
+                            phantomver = NULL,
+                            extraCapabilities = eCaps,
+                            verbose = FALSE)
 )
+
 p$layout$height <- 480                  # match interactive plot height
 export(p = p, file = svg_file, selenium = rD)
 Sys.sleep(1)
 rDstop <- rD[["server"]]$stop()
-## move saved file
-copy <- file.copy(from = svg_fromfile, to = svg_tofile, overwrite = TRUE)
-unlink(svg_fromfile)
+knitr::include_graphics(svg_tofile)
+## convert to print formats
+rsvg_pdf(svg_tofile, file.path(fig_path, paste0(file_name, ".pdf")))
+rsvg_ps(svg_tofile, file.path(fig_path, paste0(file_name, ".eps")))
 ```
 
-```{r plotly-include-svg, out.width='100%', echo=FALSE, eval=TRUE}
-knitr::include_graphics(svg_tofile)
-```
+- [PDF file](assets/img/plotly-multiple-y.pdf)
+- [EPS file](assets/img/plotly-multiple-y.eps)
+
