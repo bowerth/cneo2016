@@ -23,8 +23,11 @@ library(grid)
 library(xts)
 library(dygraphs)
 
-library(plotly)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 
+library(plotly)
 library(rsvg)
 
 source("util/lattice-settings.R")
@@ -61,7 +64,7 @@ knitr::kable(head(eoData$can22, 3))
 ```
 
 
-## Lattice Chart 1
+## Static Chart 1
 
 ### FAME Output
 
@@ -70,11 +73,130 @@ knitr::kable(head(eoData$can22, 3))
 knitr::include_graphics("assets/img/eo2016-can1.svg")
 ```
 
+### ggplot2 Output
+
+- ggplot2: [Specify a secondary axis](http://ggplot2.tidyverse.org/reference/sec_axis.html) using `sec_axis`
+- alternative: plotting independent series: [Dual axis in ggplot2](https://rpubs.com/kohske/dual_axis_in_ggplot2)
+
+```{r ggplot-chart-1, out.width='50%', echo=FALSE, warning=FALSE, cache=TRUE}
+divfactor <- 4
+y1lim <- c(-2, 4)
+y2lim <- c(-8, 16)
+## manually setting ticks
+ybreaks <- function(x, by=1) seq(x[1], x[2], by)
+## calculate number of labels
+nquarter <- function(xlim) {
+  yearLim <- as.integer(format(xlim, "%Y"))
+  res <- (yearLim[2] - yearLim[1] + 1) * 4
+  return(res)
+}
+
+## theme
+theme_cneo <- function(...) {
+  theme_bw(base_size = 17) %+replace%
+    theme(## legend.position = "top",
+      legend.direction = "vertical",
+      legend.key.width = unit(14, "mm"),
+      legend.key.height = unit(6, "mm"),
+      legend.title = element_blank(),
+      panel.border = element_blank(),
+      axis.line.x = element_line(color = 'black'),
+      axis.ticks.y = element_blank(),
+      axis.ticks.x = element_line(size = .5),
+      axis.ticks.length = unit(.2, "cm"),
+      ## axis.title.y = element_text(vjust = 1,
+      ##                             margin = margin(r = -3, unit = "cm"),
+      ##                             size = rel(.9)),
+      ## axis.title.y.right = element_text(vjust = 1,
+      ##                             margin = margin(l = -3, unit = "cm")),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      plot.title = element_text(hjust = 0.5, face = "bold",
+                                margin = margin(b = 4, unit = "mm")),
+      ...
+    )
+}
+
+## chart 1-1
+label_ind_1 <- data.frame(industry = c("mining", "other", "total"),
+                        indlabel = c("Mining, quarrying, oil and gas extraction -->",
+                                     "<-- Other",
+                                     "<-- All industries"),
+                        stringsAsFactors = FALSE)
+
+## TeX("$\\leftarrow$ All Industries")
+
+data_long_1 <-
+  eoData$can11 %>%
+  mutate(mining = mining / divfactor) %>%
+  gather(key = industry, value = value, -date) %>%
+  left_join(label_ind_1, by = "industry")
+
+data_long_1$indlabel <- factor(data_long_1$indlabel, levels = label_ind_1$indlabel)
+
+xlim <- c(min(data_long_1$date), max(data_long_1$date))
+## nquarter(xlim = xlim)
+
+p1 <-
+ggplot(data = data_long_1, aes(x = date, y = value, color = indlabel)) +
+  geom_line(size = 1.5) +
+  scale_y_continuous("Y-o-y % changes",
+                     breaks = ybreaks(y1lim),
+                     sec.axis = sec_axis(~.*divfactor,
+                                         breaks = ybreaks(y2lim, by = divfactor),
+                                         name = derive()
+                                         ## name = ""
+                                         )) +
+  scale_color_manual(values = rev(lineColors$pal3)) +
+  scale_x_date(name = NULL,
+               breaks = scales::date_breaks("1 year"), # date_breaks("3 months")
+               labels = scales::date_format("%Y")) + # date_format("%b %Y")
+  ggtitle("Growth has picked up outside the oil\nand gas sector")
+
+p1 + theme_cneo(
+      axis.title.y = element_text(vjust = 1,
+                                  margin = margin(r = -3, unit = "cm"),
+                                  size = rel(.9)),
+      axis.title.y.right = element_text(margin = margin(l = -3, unit = "cm")),
+      legend.position = "top"
+    )
+
+## chart 1-2
+label_ind_2 <- data.frame(industry = c("mining", "other"),
+                        indlabel = c("Mining investment",
+                                     "Other business investment"),
+                        stringsAsFactors = FALSE)
+
+data_long_2 <-
+  eoData$can12 %>%
+  gather(key = industry, value = value, -date) %>%
+  left_join(label_ind_2, by = "industry")
+
+data_long_2$indlabel <- factor(data_long_2$indlabel, levels = label_ind_2$indlabel)
+
+p2 <-
+  ggplot(data = data_long_2, aes(x = date, y = value, color = indlabel)) +
+  geom_line(size = 1.5) +
+  scale_color_manual(values = lineColors$pal2) +
+  scale_y_continuous(name = "Y-o-y % changes",
+                     position = "right") +
+  ggtitle("The downturn in business investment\nis moderating")
+
+p2 + theme_cneo(
+      axis.title.y = element_text(vjust = 1),
+      axis.title.y.right = element_text(margin = margin(l = -3.5, unit = "cm"),
+                                        size = rel(.9)),
+      legend.position = c(0.25, 0.15)
+    )
+
+```
+
+
 ### latticeExtra Double Y-Scales
 
 <!-- ```{r can1, fig.width=4.38, fig.height=3.5, echo=FALSE} -->
-```{r chart-1, out.width='50%', echo=FALSE}
-
+```{r lattice-chart-1, out.width='50%', echo=FALSE}
 ## chart 1-1
 y1lim <- c(-2, 4)
 y2lim <- c(-8, 16)
@@ -134,7 +256,7 @@ xyplot(mining + other ~ date, data = eoData$can12, type = "l", ylim = y1lim,
 
 ```
 
-## Lattice Chart 2
+## Static Chart 2
 
 ### FAME Output
 
@@ -149,8 +271,7 @@ knitr::include_graphics("assets/img/eo2016-can2.svg")
 ### lattice Output
 
 <!-- ```{r can2, echo=FALSE} -->
-```{r chart-2, out.width='50%', echo=FALSE}
-
+```{r lattice-chart-2, out.width='50%', echo=FALSE}
 y1lim <- c(78,144)
 xyplot(rest + toronto + vancouver ~ date, data = eoData$can21, type = "l", ylim = y1lim,
        scales = list(y = list(at = atLim(y1lim, 11))),
