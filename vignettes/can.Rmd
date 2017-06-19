@@ -26,6 +26,7 @@ library(dygraphs)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(ggiraph)
 
 library(plotly)
 library(rsvg)
@@ -112,8 +113,9 @@ theme_cneo <- function(...) {
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank(),
       panel.grid.minor.y = element_blank(),
-      plot.title = element_text(hjust = 0.5, face = "bold",
-                                margin = margin(b = 4, unit = "mm")),
+      plot.title = element_text(hjust = 0.5, face = "bold"
+                                ## margin = margin(b = 4, unit = "mm")
+                                ),
       ...
     )
 }
@@ -127,10 +129,17 @@ label_ind_1 <- data.frame(industry = c("mining", "other", "total"),
 
 ## TeX("$\\leftarrow$ All Industries")
 
+## data_long_1 <-
+##   eoData$can11 %>%
+##   mutate(mining = mining / divfactor) %>%
+##   gather(key = industry, value = value, -date) %>%
+##   left_join(label_ind_1, by = "industry")
+
 data_long_1 <-
   eoData$can11 %>%
-  mutate(mining = mining / divfactor) %>%
+  ## mutate(mining = mining / divfactor) %>%
   gather(key = industry, value = value, -date) %>%
+  mutate(value_scaled = ifelse(industry %in% c("mining"), value / divfactor, value)) %>%
   left_join(label_ind_1, by = "industry")
 
 data_long_1$indlabel <- factor(data_long_1$indlabel, levels = label_ind_1$indlabel)
@@ -139,28 +148,29 @@ xlim <- c(min(data_long_1$date), max(data_long_1$date))
 ## nquarter(xlim = xlim)
 
 p1 <-
-ggplot(data = data_long_1, aes(x = date, y = value, color = indlabel)) +
-  geom_line(size = 1.5) +
-  scale_y_continuous("Y-o-y % changes",
+  ggplot(data = data_long_1,
+         aes(x = date, y = value_scaled, color = indlabel)) +
+  scale_color_manual(values = rev(lineColors$pal3)) +
+  scale_x_date(name = NULL,
+               breaks = scales::date_breaks("1 year"), # date_breaks("3 months")
+               labels = scales::date_format("%Y")) + # date_format("%b %Y")
+  ggtitle("Growth has picked up outside the oil\nand gas sector") +
+  theme_cneo(
+    axis.title.y = element_text(vjust = 1,
+                                margin = margin(r = -3, unit = "cm"),
+                                size = rel(.9)),
+    axis.title.y.right = element_text(margin = margin(l = -3, unit = "cm")),
+    legend.position = "top"
+  )
+
+p1 + geom_line(size = 1.5) +
+    scale_y_continuous("Y-o-y % changes",
                      breaks = ybreaks(y1lim),
                      sec.axis = sec_axis(~.*divfactor,
                                          breaks = ybreaks(y2lim, by = divfactor),
                                          name = derive()
                                          ## name = ""
-                                         )) +
-  scale_color_manual(values = rev(lineColors$pal3)) +
-  scale_x_date(name = NULL,
-               breaks = scales::date_breaks("1 year"), # date_breaks("3 months")
-               labels = scales::date_format("%Y")) + # date_format("%b %Y")
-  ggtitle("Growth has picked up outside the oil\nand gas sector")
-
-p1 + theme_cneo(
-      axis.title.y = element_text(vjust = 1,
-                                  margin = margin(r = -3, unit = "cm"),
-                                  size = rel(.9)),
-      axis.title.y.right = element_text(margin = margin(l = -3, unit = "cm")),
-      legend.position = "top"
-    )
+                                         ))
 
 ## chart 1-2
 label_ind_2 <- data.frame(industry = c("mining", "other"),
@@ -177,21 +187,40 @@ data_long_2$indlabel <- factor(data_long_2$indlabel, levels = label_ind_2$indlab
 
 p2 <-
   ggplot(data = data_long_2, aes(x = date, y = value, color = indlabel)) +
-  geom_line(size = 1.5) +
   scale_color_manual(values = lineColors$pal2) +
   scale_y_continuous(name = "Y-o-y % changes",
                      position = "right") +
-  ggtitle("The downturn in business investment\nis moderating")
+  ggtitle("The downturn in business investment\nis moderating") +
+  theme_cneo(
+    axis.title.y = element_text(vjust = 1),
+    axis.title.y.right = element_text(margin = margin(l = -3.5, unit = "cm"),
+                                      size = rel(.9)),
+    legend.position = c(0.25, 0.15)
+  )
 
-p2 + theme_cneo(
-      axis.title.y = element_text(vjust = 1),
-      axis.title.y.right = element_text(margin = margin(l = -3.5, unit = "cm"),
-                                        size = rel(.9)),
-      legend.position = c(0.25, 0.15)
-    )
+p2 + geom_line(size = 1.5)
 
 ```
 
+### ggplotly
+
+```{r ggplotly-chart1, out.width='100%', echo=FALSE, warning=FALSE, eval=TRUE}
+p1text <- p1 +
+  geom_line(aes(y = value), color = NA) +
+  geom_line(aes(text = value)) +
+  ## scale_y_continuous(limits = c(-2, 4))
+  scale_y_continuous("Y-o-y % changes",
+                     limits = c(-2, 4),
+                     breaks = ybreaks(y1lim),
+                     sec.axis = sec_axis(~.*divfactor,
+                                         breaks = ybreaks(y2lim, by = divfactor),
+                                         name = derive()
+                                         ## name = ""
+                                         ))
+
+ggplotly(p1text, tooltip = c("text"), width = 800)
+
+```
 
 ### latticeExtra Double Y-Scales
 
@@ -446,3 +475,14 @@ rsvg_ps(svg_tofile, file.path(fig_path, paste0(file_name, ".eps")))
 - [PDF file](assets/img/plotly-multiple-y.pdf)
 - [EPS file](assets/img/plotly-multiple-y.eps)
 
+
+## ggiraph
+
+```{r ggiraph-chart11, warning=FALSE, echo=FALSE}
+knitr::kable(data_long_1[order(data_long_1$date),][1:3,])
+
+gg_interactive_1 <-
+  p1 + geom_line(size = 1.5) +
+  geom_point_interactive(aes(tooltip = round(value, 2)), size = 2)
+ggiraph(code = print(gg_interactive_1), width = .8, width_svg = 8)
+```
