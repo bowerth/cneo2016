@@ -1,0 +1,26 @@
+color_values:
+  - '#da2128'
+  - '#58BB58'
+  - '#8cc841'
+  - '#037bc1'
+  - '#7f0506'
+  - '#CCCCCC'
+  - '#f47920'
+  - '#a154a1'
+  - '#EDF0F7'
+  - '#C8c8c8'
+  - '#000000'
+color_names:
+  - red
+  - light green
+  - green
+  - blue
+  - brown
+  - grey
+  - orange
+  - purple
+  - light grey
+  - middle grey
+  - black
+line_width: 0.8
+shading_color: '#EDF0F7'

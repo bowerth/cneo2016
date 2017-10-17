@@ -1,0 +1,29 @@
+panel_ontop: TRUE
+x_break: 2
+y_min: -20
+y_max: 25
+y_break: 5
+YPosition: "left"
+secondAxis_Min: 50
+secondAxis_Max: 140
+secondAxis_Break: 10
+EN:
+  title: "Economic activity is picking up"
+  subtitle:
+  labelY: "Y-o-y changes"
+  legendX: 0.5
+  legendY: 0.9
+  legendDir: "vertical"
+  series_1_label: "GDP growth"
+  series_2_label: "Economic sentiment indicator"
+  secondAxis_Label: "Index"
+FR:
+  title:
+  subtitle:
+  labelY: Y
+  legendX: 0
+  legendY: 0
+  legendDir: "vertical"
+  series_1_label: "GDP growth"
+  series_2_label: "Economic sentiment indicator"
+  secondAxis_Label:

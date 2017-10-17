@@ -1,0 +1,228 @@
+---
+title: "Chart Generator"
+author: "ECO"
+output: 
+  md_document:
+    variant: markdown_github
+#   rmarkdown::html_vignette:
+    fig_width: 7.5
+##    fig_height: 6
+# vignette: >
+#   %\VignetteIndexEntry{Chart Generator}
+#   %\VignetteEngine{knitr::rmarkdown}
+#   %\VignetteEncoding{UTF-8}
+---
+
+## Chart Generator
+
+### ECO
+
+```{r knitr, echo=FALSE}
+library("knitr")
+knitr::opts_chunk$set(
+    echo = FALSE,
+    message = FALSE,
+    warning = FALSE,
+    fig.align = 'center',
+    fig.pos = 'H',
+    fig.path = "plots/",
+    ## dev = c("png", "svg"),
+    dev = "svg"
+   ## ,
+    ## dpi = 500
+)
+```
+
+```{r init}
+## source("../lib/EcoChartGenerator_libraries.R")
+
+library(ggthemes)
+library(ggplot2)
+library(readxl)
+library(zoo)
+library(stats)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(xts)
+library(reshape2)
+library(rvg)
+library(stringr)
+library(extrafont)
+library(lubridate)
+
+## library(reshape)
+library(grid)
+library(gridExtra)
+## install.packages("devEMF")
+library(devEMF)
+
+## load functions
+## - StopProgramIfLibraryIsMissing
+## - theme_ECO
+## - manage_axis
+source("../lib/ECO_ggplot_theme.r")
+source("../lib/helper.R")
+
+```
+
+
+```{r param}
+## --------------------------------------------------
+## Parameters
+## --------------------------------------------------
+param <- yaml::yaml.load_file("../demo/param.yml")
+lang <- "EN"
+## str(param)
+
+param_secondAxis_Label <- manage_axis_title(param[[lang]]$secondAxis_Label, "right")
+param_labelY <- manage_axis_title(param[[lang]]$labelY, param$YPosition)
+
+## from ../lib/ECO_ggplot_theme.r
+eco_default <- yaml::yaml.load_file("../demo/eco_default.yml")
+
+if (!Sys.info()[["sysname"]] == "Linux") suppressMessages(extrafont::loadfonts(device = "win"))
+suppressMessages(extrafont::loadfonts(device = "pdf"))
+suppressMessages(extrafont::loadfonts(device = "postscript"))
+
+```
+
+```{r data}
+## --------------------------------------------------
+## Load data
+## --------------------------------------------------
+## data_a       <- tryCatch(as.data.frame(read_excel("\\\\asap1\\fame\\eco\\fe\\r\\Eco chart generator\\XLS\\_test_EST_EO102.xlsx", sheet = "DATA_A")),error = function(err){data.frame(NULL)})
+## data_q       <- tryCatch(as.data.frame(read_excel("\\\\asap1\\fame\\eco\\fe\\r\\Eco chart generator\\XLS\\_test_EST_EO102.xlsx", sheet = "DATA_Q")),error = function(err){data.frame(NULL)})
+## data_m       <- tryCatch(as.data.frame(read_excel("\\\\asap1\\fame\\eco\\fe\\r\\Eco chart generator\\XLS\\_test_EST_EO102.xlsx", sheet = "DATA_M")),error = function(err){data.frame(NULL)})
+## data_d       <- tryCatch(as.data.frame(read_excel("\\\\asap1\\fame\\eco\\fe\\r\\Eco chart generator\\XLS\\_test_EST_EO102.xlsx", sheet = "DATA_D")),error = function(err){data.frame(NULL)})
+
+sheets <- c("A", "Q", "M", "D")
+dat_empty <- data.frame(Date = "1900-01-01")
+
+DATA <- lapply(sheets,
+               function(x) read_eo_sheet(sheet = paste0("DATA_", x),
+                                         file = "../data-raw/_test_EST_EO102.xlsx",
+                                         dat_empty = dat_empty))
+names(DATA) <- sheets
+## str(DATA)
+
+## Merge A/Q/M/D data in one data.frame
+merge_cols   <- c("Date")
+
+data_m <-
+  dat_empty %>%
+  full_join(DATA$A, by = merge_cols) %>%
+  full_join(DATA$Q, by = merge_cols) %>%
+  full_join(DATA$M, by = merge_cols) %>%
+  full_join(DATA$D, by = merge_cols) %>%
+  mutate(Date = as.Date(Date)) %>%
+  arrange(Date) %>%
+  .[-1, ]
+## plot_data %>% head()
+
+data_ml <-
+  data_m %>%
+  mutate(`esi_scaled` = `Economic sentiment indicator` * 0.5 - 45) %>%
+  gather(key = variable, value = value, -Date, na.rm = TRUE)
+## str(plot_data_long)
+## unique(data_ml$variable)
+
+df_varlabel <- data.frame(variable = c("GDP growth", "esi_scaled"),
+                          ## varlabel = c("GDP growth", "Economic sentiment indicator")
+                          varlabel = c(paste0("<-- ", param[[lang]]$series_1_label),
+                                       paste0(param[[lang]]$series_2_label, " -->")))
+
+## data_ml %>% tbl_df()
+## data_ml %>%
+
+## --------------------------------------------------
+## Create chart
+## --------------------------------------------------
+ticksize <- (param$y_max - param$y_min) * 2.5 / 100
+
+minor_tick_seq <- seq(min(data_ml$Date), max(data_ml$Date), "3 month")
+major_tick_seq <- seq(min(data_ml$Date), max(data_ml$Date) + lubridate::years(1), "1 year")
+
+midyeardata <- as.Date(paste0(lubridate::year(data_ml$Date), "-07-01"),
+                       format = "%Y-%m-%d")
+label_tick_seq <- seq(min(midyeardata), max(midyeardata), "3 year")
+
+if (interactive() == TRUE) {graphics.off()}
+
+p <-
+  data_ml %>%
+  filter(!variable %in% c("Industrial production",
+                          "Economic sentiment indicator")) %>%
+  left_join(df_varlabel) %>%
+  ggplot(aes(x = Date, y = value, color = varlabel)) +
+  geom_line(size = eco_default$line_width,
+            linetype = "solid")
+
+my_chart2 <- eco_format_ggplot(p = p, y2formula = "~ . * 2 + 90")
+
+```
+
+```{r plot}
+## --------------------------------------------------
+## Plot the chart
+## --------------------------------------------------
+print(my_chart2)
+
+```
+
+```{r export, eval=FALSE}
+## --------------------------------------------------
+## For multicharts application
+## --------------------------------------------------
+## Save chart as RDS object (will be useful for multichart)
+## saveRDS(my_chart, "c:/temp/Chart.rds")
+
+
+## --------------------------------------------------
+## Export
+## --------------------------------------------------
+## Save as EPS (uncomment lines below to export as EPS)
+## setEPS(family = "Arial")
+## postscript("c:/temp/Chart.eps", width = 3.23, height = 2.39)
+## print(my_chart)
+## dev.off()
+
+## Save as EMF (uncomment lines below to export as EMF)
+## devEMF::emf("c:/temp/Chart.emf, width = 3.23, height = 2.39, family = "Arial")
+## print(my_chart)
+## dev.off()
+
+## Save as SVG (uncomment lines below to export as SVG)
+## rvg::dsvg("C:/Temp/Chart.svg", width = 12,height = 9.38, pointsize = 12)
+## print(my_chart)
+## dev.off()
+
+## Save as PNG (uncomment lines below to export as PNG)
+## ggsave("C:/Temp/Chart.png", my_chart, width = 10.4902, height = 8.2042, units = "cm")
+
+## Save as PDF (uncomment lines below to export as PNG)
+## ggsave("C:/Temp/Chart.pdf", my_chart, width = 3.23, height = 2.39, units = "in")
+
+## Replace my_chart1 by the name of your first chart
+gA <- ggplotGrob(my_chart2)
+## Replace my_chart2 by the name of your second chart
+gB <- ggplotGrob(my_chart2)
+g = cbind(gA, gB, size = "last")
+
+devEMF::emf("graphs.emf", width = 16.4/2.54, height = 6.6/2.54)
+
+grid.arrange(g, top = textGrob(" Estonia ", x = 0.5, hjust = 1, gp = gpar(fontface = "bold", fontsize = 15)), bottom = textGrob("1. my notes", x = 0, hjust = 0, gp = gpar(fontsize = 9)))
+#grid.arrange(g)
+dev.off()
+
+
+pdf("graphsest.pdf")
+pushViewport(viewport(layout = grid.layout(nrow = 3, ncol = 2, heights = unit(c(0.5,6.6,1),"cm"),widths = unit(c(7.8,7.8),"cm"))))
+grid.text(" Estonia ", gp = gpar(fontsize = 9, fontface = "bold"), vp = viewport(layout.pos.row = 1, layout.pos.col = 1:2))
+#Replace "my_chart" and "my_chart2 by the name of your charts
+print(my_chart2, vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
+print(my_chart2, vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
+grid.text(" NA\nNA ", x = 0 ,y = 0 , just = "left", gp = gpar(fontsize = 8),vp = viewport(just = "left",layout.pos.row = 3, layout.pos.col = 1:2))
+dev.off()
+
+```
