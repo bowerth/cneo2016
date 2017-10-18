@@ -112,7 +112,7 @@ data_m <-
 ## change shape from wide to long
 data_ml <-
   data_m %>%
-  mutate(`esi_scaled` = `Economic sentiment indicator` * 0.5 - 45) %>%
+  mutate(esi_scaled = `Economic sentiment indicator` * 0.5 - 45) %>%
   gather(key = variable, value = value, -Date, na.rm = TRUE)
 
 ## legend labels for join with plot data
@@ -135,18 +135,17 @@ label_tick_seq <- seq(min(midyeardata), max(midyeardata), "3 year")
 if (interactive() == TRUE) {graphics.off()}
 
 p <- data_ml %>%
-  filter(!variable %in% c("Industrial production",
-                          "Economic sentiment indicator")) %>%
-  left_join(df_varlabel) %>%
+  inner_join(df_varlabel) %>%
   ggplot(aes(x = Date, y = value, color = varlabel)) +
-  geom_line(size = eco_default$line_width,
-            linetype = "solid")
+  geom_line(size = eco_default$line_width, linetype = "solid") +
+  ## Set series colors
+  scale_color_manual(values = eco_default$color_values[3:4])
 
 my_chart2 <- eco_format_ggplot(p = p, y2formula = "~ . * 2 + 90")
 
 ```
 
-```{r print}
+```{r plot}
 print(my_chart2)
 
 ```

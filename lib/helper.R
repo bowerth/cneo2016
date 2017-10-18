@@ -35,8 +35,6 @@ clean_df <- function(data = stop("'data' must be provided")) {
 eco_format_ggplot <- function(p, y2formula="~.") {
   p_out <- p +
     expand_limits(y = c(param$y_min, param$y_max)) +
-    ## Set series colors
-    scale_color_manual(values = eco_default$color_values[3:4]) +
     ##
     ## Reference Line (horizontal)
     ## You can change the color and linetype like this
